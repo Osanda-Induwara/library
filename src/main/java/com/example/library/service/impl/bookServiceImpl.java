@@ -4,6 +4,7 @@ import com.example.library.model.Book;
 import com.example.library.repository.BookRepository;
 import com.example.library.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,13 @@ public class BookServiceImpl implements BookService {
     private BookRepository bookRepository;
 
     @Override
-    public Book addBook(Book book) {
+    @NonNull
+    public Book addBook(@NonNull Book book) {
         return bookRepository.save(book);
     }
 
     @Override
+    @NonNull
     public List<Book> getAllBooks() {
         // Ensure we never return null, even if no books found
         List<Book> books = bookRepository.findAll();
@@ -29,22 +32,41 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Optional<Book> getBookById(String id) {
+    @NonNull
+    public Optional<Book> getBookById(@NonNull String id) {
         return bookRepository.findById(id);
     }
 
     @Nullable
     @Override
-    public Book updateBook(String id, Book bookDetails) {
+    public Book updateBook(@NonNull String id, @NonNull Book bookDetails) {
         Optional<Book> optionalBook = bookRepository.findById(id);
 
         if (optionalBook.isPresent()) {
             Book book = optionalBook.get();
-            book.setTitle(bookDetails.getTitle());
-            book.setAuthor(bookDetails.getAuthor());
-            book.setGenre(bookDetails.getGenre());
+            // Safely update fields, handling potential null values
+            String title = bookDetails.getTitle();
+            if (title != null) {
+                book.setTitle(title);
+            }
+            
+            String author = bookDetails.getAuthor();
+            if (author != null) {
+                book.setAuthor(author);
+            }
+            
+            String genre = bookDetails.getGenre();
+            if (genre != null) {
+                book.setGenre(genre);
+            }
+            
             book.setPublicationYear(bookDetails.getPublicationYear());
-            book.setShelfLocation(bookDetails.getShelfLocation());
+            
+            String shelfLocation = bookDetails.getShelfLocation();
+            if (shelfLocation != null) {
+                book.setShelfLocation(shelfLocation);
+            }
+            
             return bookRepository.save(book);
         }
         // Return null if book not found (marked @Nullable)
@@ -52,11 +74,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void deleteBookById(String id) {
+    public void deleteBookById(@NonNull String id) {
         bookRepository.deleteById(id);
     }
 
     @Override
+    @NonNull
     public List<Book> findBooksByPublicationYear(int year) {
         List<Book> books = bookRepository.findByPublicationYear(year);
         return books != null ? books : List.of();
@@ -64,7 +87,7 @@ public class BookServiceImpl implements BookService {
 
     @Nullable
     @Override
-    public String getGenreByBookId(String id) {
+    public String getGenreByBookId(@NonNull String id) {
         Optional<Book> optionalBook = bookRepository.findById(id);
         return optionalBook.map(Book::getGenre).orElse(null);
     }
